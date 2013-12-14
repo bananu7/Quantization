@@ -3,7 +3,7 @@
     // palette : sorted list of colors
     function genQuantizedPalette (n) {
         "use strict";
-        var p = new Array;
+        var p = [];
         // how many steps each channel will have
         var channelN = Math.floor(Math.pow(n, 1/3));
         
@@ -17,12 +17,12 @@
         return p;
     }
     
-    var calcColorError = function(a,b,power) {
+    function calcColorError(a,b,power) {
         return Math.pow(a.r - b.r, power) 
              + Math.pow(a.g - b.g, power)
              + Math.pow(a.b - b.b, power);
     }
-    var calcMeansquaredError = function(a,b) { return calcColorError(a,b,2); }
+    var calcMeansquaredError = function(a,b) { return calcColorError(a,b,2); };
     
     function addColors(a,b) { 
         return {
@@ -80,7 +80,6 @@
                 var oldpixel = getPixelFromImdata(imdata, x, y);
                 var newpixel = findClosestPaletteColor(oldpixel, palette);
                 setPixelAtImdata(imdata, x, y, newpixel);
-                var quantError = calcColorError(oldpixel, newpixel, 1);
             }
         }
     }
@@ -101,10 +100,10 @@
         
         for (var y = 0; y < imdata.height; ++y) {
             for (var x = 0; x < imdata.width; ++x) {
-                var oldpixel = getPixelFromImdata(imdata, x, y);
-                var newpixel = findClosestPaletteColor(oldpixel, palette);
-                setPixelAtImdata(imdata, x, y, newpixel);
-                var quantError = calcColorError(oldpixel, newpixel, 1);
+                var oldPixel = getPixelFromImdata(imdata, x, y);
+                var newPixel = findClosestPaletteColor(oldPixel, palette);
+                setPixelAtImdata(imdata, x, y, newPixel);
+                var quantError = calcColorError(oldPixel, newPixel, 1);
                 
                 modifyPixelInImdata(imdata,x+1,y  , function(c) { return addColors(c, multColor(c, 7/16 * quantError)); });
                 modifyPixelInImdata(imdata,x-1,y+1, function(c) { return addColors(c, multColor(c, 3/16 * quantError)); });
@@ -145,5 +144,6 @@ onmessage = function(evt) {
     });
 
     postMessage({ type: "finished", imdata: imdata });
-}
+};
+
 

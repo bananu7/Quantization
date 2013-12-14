@@ -1,0 +1,40 @@
+<html>
+
+<head>
+   <script>
+    
+    function preloader() {
+        var img = new Image();   // Create new img element
+        img.addEventListener("load", function() {
+            var myWorker = new Worker("run.js");
+            
+            var ctx = document.getElementById('canvas').getContext('2d');
+            ctx.drawImage(img,0,0);
+            var imdata = ctx.getImageData(0, 0, 500, 500);
+            
+            myWorker.onmessage = function (oEvent) {
+                //alert("event");
+                if (oEvent.data.type == "progress") {
+                    document.getElementById('progressbar').style.width = (oEvent.data.val * 5) +'px';
+                    //console.log("Called back by the worker!\n");
+                } else if (oEvent.data.type == "finished") {
+                    //imdata.data = oEvent.imdata;
+                    document.getElementById('progressbar').style.width = (502) +'px';
+                    ctx.putImageData(oEvent.data.imdata, 0, 0);
+                }
+            };
+            
+            myWorker.postMessage(imdata);
+        }, false);
+        img.src = 'pizza.jpg'; // Set source path
+    }
+    </script>
+</head>
+
+<body onLoad="javascript:preloader()">
+    <canvas id="canvas" width="500", height="500", style="width: 500; height: 500; border: 1px solid black;"></canvas>
+    <div id="progressbar" style="height: 100px; background-color: green; width: 0px;"></div>
+</body>
+
+</html>
+

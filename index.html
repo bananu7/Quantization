@@ -1,36 +1,76 @@
 <html>
 
 <head>
-   <script>
-    function preloader() {
-        var img = new Image();   // Create new img element
+    <meta charset="utf-8">
+    <script>
+       var img;
+
+       function handleFileSelect(evt) {
+           var files = evt.target.files; // FileList object
+
+           // files is a FileList of File objects. List some properties.
+           img.src = URL.createObjectURL(files[0]);
+       }
+
+       function process() {
+           alert("ok");
+           var ctx = document.getElementById('canvas').getContext('2d');
+           var imdata = ctx.getImageData(0, 0, 500, 500);
+
+           var myWorker = new Worker("run.js");
+
+           myWorker.onmessage = function (oEvent) {
+               //alert("event");
+               if (oEvent.data.type == "progress") {
+                   document.getElementById('progressbar').style.width = (oEvent.data.val * 5) +'px';
+                   //console.log("Called back by the worker!\n");
+               } else if (oEvent.data.type == "finished") {
+                   //imdata.data = oEvent.imdata;
+                   document.getElementById('progressbar').style.width = (502) +'px';
+                   ctx.putImageData(oEvent.data.imdata, 0, 0);
+               }
+           };
+
+           myWorker.postMessage(imdata);
+       }
+
+
+       function preloader() {
+        img = new Image();   // Create new img element
         img.addEventListener("load", function() {
-            var myWorker = new Worker("run.js");
-            
+            document.getElementById("pick-algorithm").disabled = false;
+            // when the image loads, display it on canvas
             var ctx = document.getElementById('canvas').getContext('2d');
             ctx.drawImage(img,0,0);
-            var imdata = ctx.getImageData(0, 0, 500, 500);
-            
-            myWorker.onmessage = function (oEvent) {
-                //alert("event");
-                if (oEvent.data.type == "progress") {
-                    document.getElementById('progressbar').style.width = (oEvent.data.val * 5) +'px';
-                    //console.log("Called back by the worker!\n");
-                } else if (oEvent.data.type == "finished") {
-                    //imdata.data = oEvent.imdata;
-                    document.getElementById('progressbar').style.width = (502) +'px';
-                    ctx.putImageData(oEvent.data.imdata, 0, 0);
-                }
-            };
-            
-            myWorker.postMessage(imdata);
         }, false);
-        img.src = 'pizza.jpg'; // Set source path
+
+        img.src = 'pizza.jpg';
+        document.getElementById('files').addEventListener('change', handleFileSelect, false);
     }
     </script>
 </head>
 
 <body onLoad="preloader()">
+    <h1>Image Quantization</h1>
+    <h2>Visualization of Information - Gdańsk University of Technology 2013</h2>
+    <h3><em>Bartosz Banachewicz & Michał Wierzbicki</em></h3>
+    <p>The code is available under MIT licence.</p>
+    <form>
+        <fieldset id="pick-file">
+            <input type="file" id="files" name="files[]" multiple />
+        </fieldset>
+        <fieldset id="pick-algorithm" disabled>
+            <label for="algorithm">Choose algorithm file:</label>
+            <input id="algorithm" type="text" list="algorithms">
+
+            <datalist id="algorithms">
+                <option>Floyd-Steinberg
+                <option>Octree-FS
+            </datalist>
+            <input type="button" onclick="process()" value="Process">
+        </fieldset>
+    </form>
+
     <canvas id="canvas" width="500" height="500" style="width: 500px; height: 500px; border: 1px solid black;"></canvas>
     <div id="progressbar" style="height: 100px; background-color: green; width: 0;"></div>
 </body>

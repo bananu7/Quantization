@@ -1,22 +1,4 @@
 
-    // color : r,g,b
-    // palette : sorted list of colors
-    function genQuantizedPalette (n) {
-        "use strict";
-        var p = [];
-        // how many steps each channel will have
-        var channelN = Math.floor(Math.pow(n, 1/3));
-        
-        for (var r = 0; r < channelN; r++) {
-            for (var g = 0; g < channelN; g++) { 
-                for (var b = 0; b < channelN; b++) {
-                    p.push({ r: r/channelN, g: g/channelN, b: b/channelN });
-                }
-            }
-        }
-        return p;
-    }
-    
     function calcColorError(a,b,power) {
         return Math.pow(a.r - b.r, power) 
              + Math.pow(a.g - b.g, power)
@@ -113,28 +95,10 @@
             progress(y / imdata.height * 100);
         }
     }
-    function negate(imdata) {
-        "use strict";
-        var pos;
-        
-        for(var x = 0; x < 500; x++) {
-            for(var y = 0; y < 500; y++) {
-                // pixel position
-                pos = (imdata.width * 4 * y) + (x * 4);
-                // channels
-                imdata.data[pos] = 255 - imdata.data[pos];
-                imdata.data[pos+1] = 255 - imdata.data[pos+1];
-                imdata.data[pos+2] = 255 - imdata.data[pos+2];
-            }
-        }
-    }
 
 onmessage = function(evt) {
-
-    var imdata = evt.data;
-
-    //negate(imdata);
-    var palette = genQuantizedPalette(256);
+    var imdata = evt.data.imdata;
+    var palette = evt.data.palette;
     
     floydSteinberg(imdata, palette, function(per) {
         postMessage({

@@ -3,49 +3,73 @@
 <head>
     <meta charset="utf-8">
     <script>
-       var img;
+        var img;
 
-       function handleFileSelect(evt) {
-           var files = evt.target.files; // FileList object
+        function handleFileSelect(evt) {
+            var files = evt.target.files; // FileList object
 
-           // files is a FileList of File objects. List some properties.
-           img.src = URL.createObjectURL(files[0]);
-       }
+            // files is a FileList of File objects. List some properties.
+            img.src = URL.createObjectURL(files[0]);
+        }
 
-       function process() {
-           var ctx = document.getElementById('canvas').getContext('2d');
-           var imdata = ctx.getImageData(0, 0, 500, 500);
+        function getSelectedRadio(radioElemName) {
+            var radios = document.getElementsByName(radioElemName);
+            var value;
+            for (var i = 0; i < radios.length; ++i) {
+                if (radios[i].checked) {
+                    return radios[i].value;
+                }
+            }
+            return undefined;
+        }
 
-           var algorithm = document.getElementById("algorithm").value;
-           var myWorker = new Worker(algorithm + ".js");
-
-           myWorker.onmessage = function (oEvent) {
-               //alert("event");
-               if (oEvent.data.type == "progress") {
-                   document.getElementById('progressbar').style.width = (oEvent.data.val * 5) +'px';
-                   //console.log("Called back by the worker!\n");
-               } else if (oEvent.data.type == "finished") {
-                   document.getElementById('progressbar').style.width = (502) +'px';
-                   ctx.putImageData(oEvent.data.imdata, 0, 0);
-               }
-           };
-
-           myWorker.postMessage(imdata);
-       }
-
-
-       function preloader() {
-        img = new Image();   // Create new img element
-        img.addEventListener("load", function() {
-            document.getElementById("pick-algorithm").disabled = false;
-            // when the image loads, display it on canvas
+        function process() {
             var ctx = document.getElementById('canvas').getContext('2d');
-            ctx.drawImage(img,0,0);
-        }, false);
+            var imdata = ctx.getImageData(0, 0, 500, 500);
 
-        img.src = 'pizza.jpg';
-        document.getElementById('files').addEventListener('change', handleFileSelect, false);
-    }
+            // Palette construction
+            var paletteAlgorithm = getSelectedRadio('paletteS');
+            var paletteWorker = new Worker("palette/" + paletteAlgorithm + ".js");
+            paletteWorker.onmessage = function (evt) {
+                // Actual image quantization
+                var palette = evt.data;
+
+                var algorithm = getSelectedRadio('algorithmS');
+                if (algorithm === undefined) throw "wrong algorithm picked";
+
+                var myWorker = new Worker("dithering/" + algorithm + ".js");
+
+                myWorker.onmessage = function (oEvent) {
+                    //alert("event");
+                    if (oEvent.data.type == "progress") {
+                        document.getElementById('progressbar').style.width = (oEvent.data.val * 5) +'px';
+                        //console.log("Called back by the worker!\n");
+                    } else if (oEvent.data.type == "finished") {
+                        document.getElementById('progressbar').style.width = (502) +'px';
+                        ctx.putImageData(oEvent.data.imdata, 0, 0);
+                    }
+                };
+
+                myWorker.postMessage({
+                    imdata: imdata,
+                    palette: palette
+                });
+            }
+            paletteWorker.postMessage(imdata);
+        }
+
+
+        function preloader() {
+            img = new Image();   // Create new img element
+            img.addEventListener("load", function() {
+                //document.getElementById("pick-algorithm").disabled = false;
+                var ctx = document.getElementById('canvas').getContext('2d');
+                ctx.drawImage(img,0,0);
+            }, false);
+
+            img.src = 'pizza.jpg';
+            document.getElementById('files').addEventListener('change', handleFileSelect, false);
+        }
     </script>
 </head>
 
@@ -58,16 +82,24 @@
         <fieldset id="pick-file">
             <input type="file" id="files" name="files[]" multiple />
         </fieldset>
-        <fieldset id="pick-algorithm" disabled>
-            <label for="algorithm">Choose algorithm file:</label>
-            <input id="algorithm" type="text" list="algorithms">
-
-            <datalist id="algorithms">
-                <option>Floyd-Steinberg
-                <option>Octree-FS
-            </datalist>
-            <input type="button" onclick="process()" value="Process">
+    </form>
+    <form>
+        <fieldset id="pick-pallette-builder">
+            <label>Choose palette building algorithm:<br>
+                <input type="radio" name="paletteS" value="regular" checked>Regular divisions<br>
+                <input type="radio" name="paletteS" value="octree">Octree-based numbered<br>
+            </label>
         </fieldset>
+
+        <fieldset id="pick-dithering">
+            <label>Choose algorithm file:<br>
+                <input type="radio" name="algorithmS" value="negate">Misc. - negate the image<br>
+                <input type="radio" name="algorithmS" value="Simple-Threshold">Simple threshold<br>
+                <input type="radio" name="algorithmS" value="Floyd-Steinberg" checked>Floyd-Steinberg<br>
+            </label>
+        </fieldset>
+
+        <input type="button" onclick="process()" value="Process">
     </form>
 
     <canvas id="canvas" width="500" height="500" style="width: 500px; height: 500px; border: 1px solid black;"></canvas>

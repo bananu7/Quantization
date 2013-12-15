@@ -13,11 +13,11 @@
        }
 
        function process() {
-           alert("ok");
            var ctx = document.getElementById('canvas').getContext('2d');
            var imdata = ctx.getImageData(0, 0, 500, 500);
 
-           var myWorker = new Worker("run.js");
+           var algorithm = document.getElementById("algorithm").value;
+           var myWorker = new Worker(algorithm + ".js");
 
            myWorker.onmessage = function (oEvent) {
                //alert("event");
@@ -25,7 +25,6 @@
                    document.getElementById('progressbar').style.width = (oEvent.data.val * 5) +'px';
                    //console.log("Called back by the worker!\n");
                } else if (oEvent.data.type == "finished") {
-                   //imdata.data = oEvent.imdata;
                    document.getElementById('progressbar').style.width = (502) +'px';
                    ctx.putImageData(oEvent.data.imdata, 0, 0);
                }

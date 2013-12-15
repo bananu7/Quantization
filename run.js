@@ -110,7 +110,7 @@
                 modifyPixelInImdata(imdata,x  ,y+1, function(c) { return addColors(c, multColor(c, 5/16 * quantError)); });
                 modifyPixelInImdata(imdata,x+1,y+1, function(c) { return addColors(c, multColor(c, 1/16 * quantError)); });
             }
-            progress(1);
+            progress(1.0);
         }
     }
     
@@ -123,8 +123,8 @@
         "use strict";
         var pos;
         
-        for(var x = 0; x < 500; x++) {
-            for(var y = 0; y < 500; y++) {
+        for(var x = 0; x < imdata.width; x++) {
+            for(var y = 0; y < imdata.height; y++) {
                 // pixel position
                 pos = (imdata.width * 4 * y) + (x * 4);
                 // channels
@@ -140,19 +140,20 @@ onmessage = function(evt) {
     var imdata      = evt.data.imdata;
     var id          = evt.data.id;
     var sliceCount  = evt.data.workerCount;
-    var sliceBegin  = imdata.height * ( id   /sliceCount);
-    var sliceEnd    = imdata.height * ((id+1)/sliceCount);
-    var sliceWidth  = 4 * imdata.width;
-    var sliceData   = imdata.data.subarray(sliceBegin * sliceWidth, sliceEnd * sliceWidth);
-    var slice       = imdata;
-    
-    // <NA POTĘGĘ POSĘPNEGO CZEREPU, CZEMU TO SIĘ NIE USTAWIA?!>
-    slice.data.set(sliceData);
-    slice.data = sliceData;
-    slice.height /= sliceCount;
-    // </KURWA>
-  
-    if (id % 2 == 1) negate(slice);
+    var sliceWidth  = imdata.width;
+    var sliceHeight = Math.floor(imdata.height / sliceCount);
+
+    var sliceBegin  = sliceHeight *  id;
+    var sliceEnd    = sliceHeight * (id+1);
+    var sliceData   = new Uint8ClampedArray(sliceHeight * sliceWidth * 4);
+        sliceData   = imdata.data.subarray(sliceBegin * sliceWidth * 4, sliceEnd * sliceWidth * 4)  ;
+    var slice       = {
+        data:sliceData,
+        width:sliceWidth,
+        height:sliceHeight
+    };
+
+    //if (id % 2 == 1) negate(slice);
     //negate(slice);
     var palette = genQuantizedPalette(256);
 //*

@@ -2,13 +2,17 @@
 
 <head>
    <script>
-    function preloader(workerCount) {
+    function preloader() {
     //"use strict";
+        var imageHeight = 500;
+        var imageWidth  = 500;
+        var workerCount = imageHeight/125;
+        //var workerCount = 1;
         var img = new Image();   // Create new img element
         img.addEventListener("load", function() {
             var ctx = document.getElementById('canvas').getContext('2d');
                 ctx.drawImage(img,0,0);
-            var imdata = ctx.getImageData(0, 0, 500, 500);
+            var imdata = ctx.getImageData(0, 0, imageWidth, imageHeight);
         
             var workerArray = [];
             var finishedWorkerCount = 0;
@@ -31,16 +35,19 @@
                     if (type == "progress") {
                         oldWidth = +(document.getElementById('progressbar').style.width.replace('px',''));
                         oldWidth -= currentWidth;
-                        currentWidth += (oEvent.data.val) / workerCount;
+                        currentWidth += (oEvent.data.val);
                         document.getElementById('progressbar').style.width = oldWidth + currentWidth +'px';
-                        //console.log("Called back by the worker "+oEvent.id+" !\n");
+                        //console.log("Called back by the worker "+oEvent.id+" !\n");//*/
                         
                     } else if (type == "finished") {
                         ++finishedWorkerCount;
                         var newImdata = oEvent.data.imdata;
                         var height = newImdata.height;
                         var width  = newImdata.width;
-                        ctx.putImageData(newImdata,0,0, 0,id*height / workerCount, width, height / workerCount);
+                        var imageSlice = ctx.createImageData(width, height);
+                        imageSlice.data.set(newImdata.data);
+                        //ctx.putImageData(imageSlice,0,0);
+                        ctx.putImageData(imageSlice,0,id*height, 0,0, width,height);
                         if (finishedWorkerCount == workerCount) {
                             document.getElementById('progressbar').style.width = (502) +'px';
                             document.getElementById('progressbar').style.background = 'green';
@@ -60,7 +67,7 @@
     </script>
 </head>
 
-<body onLoad="preloader(8)">
+<body onLoad="preloader()">
     <canvas id="canvas" width="500" height="500" style="width: 500px; height: 500px; border: 1px solid black;"></canvas>
     <div id="progressbar" style="width: 2px; height: 100px; background: red; width: 0;"></div>
 </body>

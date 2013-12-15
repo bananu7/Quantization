@@ -1,4 +1,4 @@
-
+﻿
     // color : r,g,b
     // palette : sorted list of colors
     function genQuantizedPalette (n) {
@@ -42,14 +42,14 @@
     function getPixelFromImdata(imdata, x,y) {
         var pos = (imdata.width * 4 * y) + (x * 4);
         return {
-            r: imdata.data[pos] / 255.0,
+            r: imdata.data[pos]   / 255.0,
             g: imdata.data[pos+1] / 255.0,
             b: imdata.data[pos+2] / 255.0
         };
     }
     function setPixelAtImdata(imdata, x,y, c) {
         var pos = (imdata.width * 4 * y) + (x * 4);
-        imdata.data[pos] = c.r * 255;
+        imdata.data[pos]   = c.r * 255;
         imdata.data[pos+1] = c.g * 255;
         imdata.data[pos+2] = c.b * 255;
     }
@@ -110,9 +110,15 @@
                 modifyPixelInImdata(imdata,x  ,y+1, function(c) { return addColors(c, multColor(c, 5/16 * quantError)); });
                 modifyPixelInImdata(imdata,x+1,y+1, function(c) { return addColors(c, multColor(c, 1/16 * quantError)); });
             }
-            progress(y / imdata.height * 100);
+            progress(1);
         }
     }
+    
+    function floydSteinbergParalleled (imdata, palette, progress, threadCount) {
+        "use strict";
+        
+    }
+    
     function negate(imdata) {
         "use strict";
         var pos;
@@ -122,7 +128,7 @@
                 // pixel position
                 pos = (imdata.width * 4 * y) + (x * 4);
                 // channels
-                imdata.data[pos] = 255 - imdata.data[pos];
+                imdata.data[pos]   = 255 - imdata.data[pos];
                 imdata.data[pos+1] = 255 - imdata.data[pos+1];
                 imdata.data[pos+2] = 255 - imdata.data[pos+2];
             }
@@ -130,20 +136,35 @@
     }
 
 onmessage = function(evt) {
-
-    var imdata = evt.data;
-
-    //negate(imdata);
-    var palette = genQuantizedPalette(256);
+"strict";
+    var imdata      = evt.data.imdata;
+    var id          = evt.data.id;
+    var sliceCount  = evt.data.workerCount;
+    var sliceBegin  = imdata.height * ( id   /sliceCount);
+    var sliceEnd    = imdata.height * ((id+1)/sliceCount);
+    var sliceWidth  = 4 * imdata.width;
+    var sliceData   = imdata.data.subarray(sliceBegin * sliceWidth, sliceEnd * sliceWidth);
+    var slice       = imdata;
     
-    floydSteinberg(imdata, palette, function(per) {
+    // <NA POTĘGĘ POSĘPNEGO CZEREPU, CZEMU TO SIĘ NIE USTAWIA?!>
+    slice.data.set(sliceData);
+    slice.data = sliceData;
+    slice.height /= sliceCount;
+    // </KURWA>
+  
+    if (id % 2 == 1) negate(slice);
+    //negate(slice);
+    var palette = genQuantizedPalette(256);
+//*
+    floydSteinberg(slice, palette, function(per) {
         postMessage({
-            type: "progress",
-            val: per
+            type : "progress",
+            val  : per,
+            id   : id
         });
-    });
+    });//*/
 
-    postMessage({ type: "finished", imdata: imdata });
+    postMessage({ type: "finished", id:id, imdata: slice });
 };
 
 

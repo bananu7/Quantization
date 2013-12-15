@@ -2,37 +2,67 @@
 
 <head>
    <script>
-    function preloader() {
+    function preloader(workerCount) {
+    //"use strict";
         var img = new Image();   // Create new img element
         img.addEventListener("load", function() {
-            var myWorker = new Worker("run.js");
-            
             var ctx = document.getElementById('canvas').getContext('2d');
-            ctx.drawImage(img,0,0);
+                ctx.drawImage(img,0,0);
             var imdata = ctx.getImageData(0, 0, 500, 500);
+        
+            var workerArray = [];
+            var finishedWorkerCount = 0;
+            var thisWorkerID;
+            //var thisWorkerID = 0;
             
-            myWorker.onmessage = function (oEvent) {
-                //alert("event");
-                if (oEvent.data.type == "progress") {
-                    document.getElementById('progressbar').style.width = (oEvent.data.val * 5) +'px';
-                    //console.log("Called back by the worker!\n");
-                } else if (oEvent.data.type == "finished") {
-                    //imdata.data = oEvent.imdata;
-                    document.getElementById('progressbar').style.width = (502) +'px';
-                    ctx.putImageData(oEvent.data.imdata, 0, 0);
-                }
-            };
-            
-            myWorker.postMessage(imdata);
+            for (var thisWorkerID = 0; thisWorkerID < workerCount; ++thisWorkerID) {
+                //workerArray.push( { worker: new Worker("run.js"), id: thisWorkerID} );
+                workerArray.push(new Worker("run.js"));
+                //var thisWorkerID = workerArray.length - 1;
+                //alert("Created worker " + thisWorkerID);
+            }
+            workerArray.forEach(function(worker) {
+                worker.onmessage = function (oEvent) {
+                    //alert("event");
+                    var currentWidth = 0.0;
+                    var id        = oEvent.data.id;
+                    var type      = oEvent.data.type; 
+                    var oldWidth;
+                    if (type == "progress") {
+                        oldWidth = +(document.getElementById('progressbar').style.width.replace('px',''));
+                        oldWidth -= currentWidth;
+                        currentWidth += (oEvent.data.val) / workerCount;
+                        document.getElementById('progressbar').style.width = oldWidth + currentWidth +'px';
+                        //console.log("Called back by the worker "+oEvent.id+" !\n");
+                        
+                    } else if (type == "finished") {
+                        ++finishedWorkerCount;
+                        var newImdata = oEvent.data.imdata;
+                        var height = newImdata.height;
+                        var width  = newImdata.width;
+                        ctx.putImageData(newImdata,0,0, 0,id*height / workerCount, width, height / workerCount);
+                        if (finishedWorkerCount == workerCount) {
+                            document.getElementById('progressbar').style.width = (502) +'px';
+                            document.getElementById('progressbar').style.background = 'green';
+                        }
+                        //alert("Event finished for worker "+id);
+                    }
+                    
+                };
+            });
+            thisWorkerID = 0;
+            workerArray.forEach(function(worker) {
+                worker.postMessage( { imdata:imdata, id:thisWorkerID++, workerCount:workerArray.length} );
+            });
         }, false);
         img.src = 'pizza.jpg'; // Set source path
     }
     </script>
 </head>
 
-<body onLoad="preloader()">
+<body onLoad="preloader(8)">
     <canvas id="canvas" width="500" height="500" style="width: 500px; height: 500px; border: 1px solid black;"></canvas>
-    <div id="progressbar" style="height: 100px; background-color: green; width: 0;"></div>
+    <div id="progressbar" style="width: 2px; height: 100px; background: red; width: 0;"></div>
 </body>
 
 </html>

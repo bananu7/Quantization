@@ -53,12 +53,12 @@ function findClosestPaletteColor (color, palette) {
 
     var closestMatch, minError = 99999999.9;
 
-    palette.forEach(function(c) {
-        var err = calcMeansquaredError(color, c);
+    for (var i = 0; i < palette.length; i++) {
+        var err = calcMeansquaredError(color, palette[i]);
         if (err < minError) {
             minError = err;
-            closestMatch = c;
+            closestMatch = palette[i];
         }
-    });
+    }
     return closestMatch;
 }

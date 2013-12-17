@@ -1,4 +1,12 @@
 
+function Color(r, g, b) {
+    return {
+        r: r,
+        g: g,
+        b: b
+    }
+}
+
 function calcColorError(a,b,power) {
     return Math.pow(a.r - b.r, power)
         + Math.pow(a.g - b.g, power)
@@ -7,18 +15,18 @@ function calcColorError(a,b,power) {
 var calcMeansquaredError = function(a,b) { return calcColorError(a,b,2); };
 
 function addColors(a,b) {
-    return {
-        r: a.r + b.r,
-        g: a.g + b.g,
-        b: a.b + b.b
-    };
+    return Color (
+        a.r + b.r,
+        a.g + b.g,
+        a.b + b.b
+    );
 }
 function multColor(color, f) {
-    return {
-        r: color.r * f,
-        g: color.g * f,
-        b: color.b * f
-    };
+    return Color (
+        color.r * f,
+        color.g * f,
+        color.b * f
+    );
 }
 
 function getPixelFromImdata(imdata, x,y) {

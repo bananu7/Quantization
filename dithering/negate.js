@@ -2,8 +2,8 @@ function negate(imdata) {
     "use strict";
     var pos;
 
-    for(var x = 0; x < 500; x++) {
-        for(var y = 0; y < 500; y++) {
+    for(var x = 0; x < imdata.height; x++) {
+        for(var y = 0; y < imdata.width; y++) {
             // pixel position
             pos = (imdata.width * 4 * y) + (x * 4);
             // channels
@@ -13,7 +13,7 @@ function negate(imdata) {
         }
         postMessage({
             type: "progress",
-            val: y / 5
+            val: y / imdata.height * 100
         });
     }
 }

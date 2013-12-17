@@ -11,6 +11,10 @@ function negate(imdata) {
             imdata.data[pos+1] = 255 - imdata.data[pos+1];
             imdata.data[pos+2] = 255 - imdata.data[pos+2];
         }
+        postMessage({
+            type: "progress",
+            val: y / 5
+        });
     }
 }
 

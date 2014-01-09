@@ -20,5 +20,5 @@ onmessage = function(evt) {
     if (evt.data.numColors !== undefined)
         n = evt.data.numcolors;
     // actually ignore the image in the simple algorithm
-    postMessage(genQuantizedPalette(n));
+    postMessage({ type: "finished", palette: genQuantizedPalette(n)});
 }

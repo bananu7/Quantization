@@ -31,29 +31,36 @@
             var paletteAlgorithm = getSelectedRadio('paletteS');
             var paletteWorker = new Worker("palette/" + paletteAlgorithm + ".js");
             paletteWorker.onmessage = function (evt) {
-                // Actual image quantization
-                var palette = evt.data;
+                if (evt.data.type == "progress") {
+                    document.getElementById('progressbar').style.width = (evt.data.val * 5) +'px';
+                } else if (evt.data.type == "finished") {
+                    // Actual image quantization
+                    var palette = evt.data.palette;
 
-                var algorithm = getSelectedRadio('algorithmS');
-                if (algorithm === undefined) throw "wrong algorithm picked";
+                    var algorithm = getSelectedRadio('algorithmS');
+                    if (algorithm === undefined) throw "wrong algorithm picked";
 
-                var myWorker = new Worker("dithering/" + algorithm + ".js");
+                    var myWorker = new Worker("dithering/" + algorithm + ".js");
+                    
+                    // reset the progressbar
+                    document.getElementById('progressbar').style.width = 0;
 
-                myWorker.onmessage = function (oEvent) {
-                    //alert("event");
-                    if (oEvent.data.type == "progress") {
-                        document.getElementById('progressbar').style.width = (oEvent.data.val * 5) +'px';
-                        //console.log("Called back by the worker!\n");
-                    } else if (oEvent.data.type == "finished") {
-                        document.getElementById('progressbar').style.width = (502) +'px';
-                        ctx.putImageData(oEvent.data.imdata, 0, 0);
-                    }
-                };
+                    myWorker.onmessage = function (oEvent) {
+                        //alert("event");
+                        if (oEvent.data.type == "progress") {
+                            document.getElementById('progressbar').style.width = (oEvent.data.val * 5) +'px';
+                            //console.log("Called back by the worker!\n");
+                        } else if (oEvent.data.type == "finished") {
+                            document.getElementById('progressbar').style.width = (502) +'px';
+                            ctx.putImageData(oEvent.data.imdata, 0, 0);
+                        }
+                    };
 
-                myWorker.postMessage({
-                    imdata: imdata,
-                    palette: palette
-                });
+                    myWorker.postMessage({
+                        imdata: imdata,
+                        palette: palette
+                    });
+                }
             }
             paletteWorker.postMessage(imdata);
         }
@@ -86,8 +93,8 @@
     <form>
         <fieldset id="pick-pallette-builder">
             <label>Choose palette building algorithm:<br>
-                <input type="radio" name="paletteS" value="regular" checked>Regular divisions<br>
-                <input type="radio" name="paletteS" value="octree">Octree-based numbered<br>
+                <input type="radio" name="paletteS" value="regular">Regular divisions<br>
+                <input type="radio" name="paletteS" value="octree" checked>Octree-based numbered<br>
             </label>
         </fieldset>
 

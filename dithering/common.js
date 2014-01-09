@@ -29,6 +29,10 @@ function multColor(color, f) {
     );
 }
 
+function colorLength(c) {
+    return Math.sqrt(c.r*c.r + c.g*c.g + c.b*c.b);
+}
+
 function getPixelFromImdata(imdata, x,y) {
     var pos = (imdata.width * 4 * y) + (x * 4);
     return {

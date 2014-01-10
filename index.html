@@ -123,8 +123,12 @@
                         var xx = x*zoom;
                         var yy = y*zoom;
 
-                        for (var iy = 0; iy < zoom; iy++) {    
+                        for (var iy = 0; iy < zoom; iy++) {
+                            if (iy + yy >= 200)
+                                break;
                             for (var ix = 0; ix < zoom; ix++) {
+                                if (ix + xx >= 200) // check for out-of-bonds
+                                    break;
                                 setPixelAtImdata(imdata, xx+ix, yy+iy, c);
                             }
                         }

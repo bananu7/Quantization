@@ -3,8 +3,10 @@
 <head>
     <meta charset="utf-8">
     <title>Image quantization project</title>
-    <script>
+    <script type="text/javascript" src="dithering/common.js"></script>
+    <script type="text/javascript">
         var img;
+        var magnifierEnabled = false;
 
         function handleFileSelect(evt) {
             var files = evt.target.files; // FileList object
@@ -66,6 +68,11 @@
             paletteWorker.postMessage(imdata);
         }
 
+        function toggleMagnifier() { 
+            magnifierEnabled = !magnifierEnabled;
+            document.getElementById('magnifier').style.display = magnifierEnabled ? "" : "none";
+        }
+
         function preloader() {
             img = new Image();   // Create new img element
             img.addEventListener("load", function() {
@@ -76,8 +83,65 @@
 
             img.src = 'pizza.jpg';
             document.getElementById('files').addEventListener('change', handleFileSelect, false);
+            document.getElementById('canvas').addEventListener('mouseout', function() {
+                if (magnifierEnabled)
+                    document.getElementById('magnifier').style.display = "none";
+            });
+            document.getElementById('canvas').addEventListener('mouseover', function() {
+                if (magnifierEnabled)
+                    document.getElementById('magnifier').style.display = "";
+            });
+
+            document.getElementById('canvas').addEventListener('mousemove', function(event) {
+                if (!magnifierEnabled)
+                    return;
+
+                var magnifier = document.getElementById('magnifier');
+                magnifier.style.left = (event.clientX - 100) + "px";
+                magnifier.style.top = (event.clientY - 100) + "px";
+
+                var ctx = document.getElementById('canvas').getContext('2d');
+                var origImdata = ctx.getImageData(0, 0, 500, 500);
+                var offset = { x: event.offsetX, y: event.offsetY };
+
+                var magnCtx =  document.getElementById('magnCanvas').getContext('2d');
+                var imdata = magnCtx.getImageData(0, 0, 200, 200);
+                magnCtx.beginPath();
+                magnCtx.rect(0,0,200,200);
+                magnCtx.fill();
+
+                for (var y = 0; y < 100; y++) {
+                    for (var x = 0; x < 100; x++) {
+                        var c = getPixelFromImdata(origImdata, x + offset.x, y + offset.y);                        
+
+                        var xx = x*2;
+                        var yy = y*2;
+
+                        setPixelAtImdata(imdata, xx, yy, c);
+                        setPixelAtImdata(imdata, xx+1, yy, c);
+                        setPixelAtImdata(imdata, xx+1, yy+1, c);
+                        setPixelAtImdata(imdata, xx, yy+1, c);
+                    }
+                }
+                magnCtx.putImageData(imdata, 0, 0);
+            });
         }
     </script>
+    <style type="text/css">
+        #magnifier {
+            width: 200px;
+            height: 200px;
+            border-radius:100px;
+            z-index: 100;
+            border: 1px solid white;
+            position: absolute;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        #magnCanvas { width: 200px; height: 200px; }
+
+        .optionBlock { min-width: 300px; min-height: 100px; float: left; margin 0px 0px 10px 10px; }
+    </style>
 </head>
 
 <body onLoad="preloader()">
@@ -91,24 +155,34 @@
         </fieldset>
     </form>
     <form>
-        <fieldset id="pick-pallette-builder">
+        <fieldset id="pick-pallette-builder" class="optionBlock">
             <span>Choose palette building algorithm:</span><br>
             <input type="radio" name="paletteS" value="regular">Regular divisions<br>
             <input type="radio" name="paletteS" value="octree" checked>Octree-based numbered<br>
         </fieldset>
 
-        <fieldset id="pick-dithering">
+        <fieldset id="pick-dithering" class="optionBlock">
             <span>Choose algorithm file:</span><br>
             <input type="radio" name="algorithmS" value="negate">Misc. - negate the image<br>
             <input type="radio" name="algorithmS" value="Simple-Threshold">Simple threshold<br>
             <input type="radio" name="algorithmS" value="Floyd-Steinberg" checked>Floyd-Steinberg<br>            
         </fieldset>
 
+        <fieldset class="optionBlock">
+            <span>Options</span><br>
+            <input type="checkbox" onchange="toggleMagnifier()">Magnifier<br>
+        </fieldset>
+
         <input type="button" onclick="process()" value="Process">
     </form>
 
+    <br style="clear: both;">
+
     <canvas id="canvas" width="500" height="500" style="width: 500px; height: 500px; border: 1px solid black;"></canvas>
     <div id="progressbar" style="height: 100px; background-color: green; width: 0;"></div>
+    <div id="magnifier">
+        <canvas id="magnCanvas" width="200" height="200"></canvas>
+    </div>
 </body>
 
 </html>

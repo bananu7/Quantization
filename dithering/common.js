@@ -46,6 +46,7 @@ function setPixelAtImdata(imdata, x,y, c) {
     imdata.data[pos] = c.r * 255;
     imdata.data[pos+1] = c.g * 255;
     imdata.data[pos+2] = c.b * 255;
+    imdata.data[pos+3] = 255;
 }
 function modifyPixelInImdata(imdata,x,y,fn) {
     var c = getPixelFromImdata(imdata, x, y);

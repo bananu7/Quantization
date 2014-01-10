@@ -7,6 +7,7 @@
     <script type="text/javascript">
         var img;
         var magnifierEnabled = false;
+        var magnifierZoom = 2;
 
         function handleFileSelect(evt) {
             var files = evt.target.files; // FileList object
@@ -72,6 +73,10 @@
             magnifierEnabled = !magnifierEnabled;
             document.getElementById('magnifier').style.display = magnifierEnabled ? "" : "none";
         }
+        function setMagnifierZoom(zoom) { 
+            document.getElementById('magnifierZoomDisplay').innerHTML = zoom + "x";
+            magnifierZoom = zoom;
+        }
 
         function preloader() {
             img = new Image();   // Create new img element
@@ -110,17 +115,19 @@
                 magnCtx.rect(0,0,200,200);
                 magnCtx.fill();
 
-                for (var y = 0; y < 100; y++) {
-                    for (var x = 0; x < 100; x++) {
+                var zoom = magnifierZoom;
+                for (var y = 0; y < 200 / zoom; y++) {
+                    for (var x = 0; x < 200 / zoom; x++) {
                         var c = getPixelFromImdata(origImdata, x + offset.x, y + offset.y);                        
 
-                        var xx = x*2;
-                        var yy = y*2;
+                        var xx = x*zoom;
+                        var yy = y*zoom;
 
-                        setPixelAtImdata(imdata, xx, yy, c);
-                        setPixelAtImdata(imdata, xx+1, yy, c);
-                        setPixelAtImdata(imdata, xx+1, yy+1, c);
-                        setPixelAtImdata(imdata, xx, yy+1, c);
+                        for (var iy = 0; iy < zoom; iy++) {    
+                            for (var ix = 0; ix < zoom; ix++) {
+                                setPixelAtImdata(imdata, xx+ix, yy+iy, c);
+                            }
+                        }
                     }
                 }
                 magnCtx.putImageData(imdata, 0, 0);
@@ -171,6 +178,7 @@
         <fieldset class="optionBlock">
             <span>Options</span><br>
             <input type="checkbox" onchange="toggleMagnifier()">Magnifier<br>
+            Zoom<input type="range" min="2" max="12" onchange="setMagnifierZoom(this.value)" value="2"><span id="magnifierZoomDisplay">2x</span>
         </fieldset>
 
         <input type="button" onclick="process()" value="Process">

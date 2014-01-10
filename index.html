@@ -1,7 +1,8 @@
+<!doctype html>
 <html>
-
 <head>
     <meta charset="utf-8">
+    <title>Image quantization project</title>
     <script>
         var img;
 
@@ -65,7 +66,6 @@
             paletteWorker.postMessage(imdata);
         }
 
-
         function preloader() {
             img = new Image();   // Create new img element
             img.addEventListener("load", function() {
@@ -92,18 +92,16 @@
     </form>
     <form>
         <fieldset id="pick-pallette-builder">
-            <label>Choose palette building algorithm:<br>
-                <input type="radio" name="paletteS" value="regular">Regular divisions<br>
-                <input type="radio" name="paletteS" value="octree" checked>Octree-based numbered<br>
-            </label>
+            <span>Choose palette building algorithm:</span><br>
+            <input type="radio" name="paletteS" value="regular">Regular divisions<br>
+            <input type="radio" name="paletteS" value="octree" checked>Octree-based numbered<br>
         </fieldset>
 
         <fieldset id="pick-dithering">
-            <label>Choose algorithm file:<br>
-                <input type="radio" name="algorithmS" value="negate">Misc. - negate the image<br>
-                <input type="radio" name="algorithmS" value="Simple-Threshold">Simple threshold<br>
-                <input type="radio" name="algorithmS" value="Floyd-Steinberg" checked>Floyd-Steinberg<br>
-            </label>
+            <span>Choose algorithm file:</span><br>
+            <input type="radio" name="algorithmS" value="negate">Misc. - negate the image<br>
+            <input type="radio" name="algorithmS" value="Simple-Threshold">Simple threshold<br>
+            <input type="radio" name="algorithmS" value="Floyd-Steinberg" checked>Floyd-Steinberg<br>            
         </fieldset>
 
         <input type="button" onclick="process()" value="Process">

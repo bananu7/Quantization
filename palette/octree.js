@@ -210,10 +210,10 @@ function genOctreePalette(n, imdata) {
 }
 
 onmessage = function(evt) {
-    var imdata = evt.data;
+    var imdata = evt.data.imdata;
     var n = 100;
-    if (evt.data.numColors !== undefined)
-        n = evt.data.numcolors;
+    if (evt.data.paletteSize !== undefined)
+        n = evt.data.paletteSize;
     // actually ignore the image in the simple algorithm
     var palette = genOctreePalette(n, imdata);
     postMessage({ type : "finished", palette : palette });

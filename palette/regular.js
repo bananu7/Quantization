@@ -17,8 +17,8 @@ function genQuantizedPalette (n) {
 onmessage = function(evt) {
     var imdata = evt.data.imdata;
     var n = 256;
-    if (evt.data.numColors !== undefined)
-        n = evt.data.numcolors;
+    if (evt.data.paletteSize !== undefined)
+        n = evt.data.paletteSize;
     // actually ignore the image in the simple algorithm
     postMessage({ type: "finished", palette: genQuantizedPalette(n)});
 }

@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html>
 <head>
     <meta charset="utf-8">
@@ -30,6 +30,7 @@
         function process() {
             var ctx = document.getElementById('canvas').getContext('2d');
             var imdata = ctx.getImageData(0, 0, 500, 500);
+            var paletteSize = parseInt(document.getElementById('paletteSize').value);
 
             // Palette construction
             var paletteAlgorithm = getSelectedRadio('paletteS');
@@ -66,7 +67,10 @@
                     });
                 }
             }
-            paletteWorker.postMessage(imdata);
+            paletteWorker.postMessage({
+                imdata: imdata,
+                paletteSize: paletteSize
+            });
         }
 
         function toggleMagnifier() { 
@@ -181,6 +185,7 @@
 
         <fieldset class="optionBlock">
             <span>Options</span><br>
+            Palette size<input type="number" id="paletteSize" min="1" max="10000" value="100"><br>
             <input type="checkbox" onchange="toggleMagnifier()">Magnifier<br>
             Zoom<input type="range" min="2" max="12" onchange="setMagnifierZoom(this.value)" value="2"><span id="magnifierZoomDisplay">2x</span>
         </fieldset>

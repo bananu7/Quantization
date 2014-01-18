@@ -1,6 +1,9 @@
 "use strict";
-importScripts("../dithering/common.js")
 
+importScripts(
+    "../dithering/common.js",
+    "priority-queue.no-require.js"
+)
 /*
 
 G   B
@@ -10,6 +13,7 @@ G   B
 -------> R
 
 */
+// Code
 
 function calcNodeTreshold(node) {
     return {
@@ -120,53 +124,6 @@ function findClosestPalletteColor(color, tree) {
     return curr.average;
 }
 
-function findHighestErrorDivisableNode(node) {
-    if (node.children !== undefined) {
-        // get the best possible candidate from all the children
-        var currError = -1;
-        var currNode = undefined;
-   
-        for (var i = 1; i < node.children.length; i++) {
-            var res = findHighestErrorDivisableNode(node.children[i]);
-            
-            if (res.node !== undefined) {
-                if (res.error > currError) {
-                    currError = res.error;
-                    currNode = res.node;
-                }
-            }
-        }
-        
-        return {
-            node : currNode,
-            error : currError
-        };
-    } else {
-        // if it has no children, propose itself
-        return {
-            node : node,
-            error : node.error
-        };
-    }
-}
-
-function gatherPalette(node) {
-    if (node.children !== undefined) {
-        var colors = [];
-        for (var i = 0; i < node.children.length; i++) {
-            var p = gatherPalette(node.children[i]);
-            if (p !== undefined)
-                colors = colors.concat(p);
-        }
-        return colors;
-    } else {
-        if (node.average !== undefined)
-            return [node.average];
-        else
-            return undefined;
-    }
-}
-
 function calcNodeError(node) {
     /* This method uses an absolute average
        difference between each sample in the 
@@ -205,15 +162,27 @@ function genOctreePalette(n, imdata) {
     }
     
     // initialize the tree
-    var tree = Tree(samples);
-    // recursively build the tree subdividing nodes
-    // that will gain the most.
-    tree.error = calcNodeError(tree);
-    
-    for(var i = 1; i < n; i += 7) {
-        var res = findHighestErrorDivisableNode(tree);
-        divideNode(res.node);
-        postMessage({ type: "progress", val: (i / n) * 100.0 });
+    var root = Tree(samples);
+    root.error = calcNodeError(root);
+
+    var queue = PriorityQueue({ comparator: function (a, b) { return b.error - a.error; } });
+    queue.push(root);
+    // Each node on the queue represents singular color
+    while (queue.length < n) {
+        // Pick the node with the current highest error
+        var node = queue.pop();
+        // Divide it
+        divideNode(node);
+        // Enqueue node children as potential candidates
+        for (var i = 0; i < node.children.length; ++i) {
+            // but only those who have any samples inside
+            if (node.children[i].average !== undefined) {
+                queue.push(node.children[i]);
+            }
+        }
+
+        // Inform about progress
+        postMessage({ type: "progress", val: (queue.length / n) * 100.0 });
     }
     
     //DEBUG
@@ -232,7 +201,12 @@ function genOctreePalette(n, imdata) {
         }
     }
     
-    return gatherPalette(tree);
+    var palette = [];
+    for (var i = 0; i < n; i++) {
+        var node = queue.pop();
+        palette.push(node.average);
+    }
+    return palette;
 }
 
 onmessage = function(evt) {

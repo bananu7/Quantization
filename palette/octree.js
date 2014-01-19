@@ -38,7 +38,7 @@ function calcColorProgression(color, treshold) {
 
 function calcNodeAverage(node) {
     if (node.samples.length === 0)
-        return undefined;
+        return null;
 
     var avg = Color(0.0, 0.0, 0.0);
     for (var n = 0; n < node.samples.length; n++) {
@@ -134,7 +134,7 @@ function calcNodeError(node) {
        samples are located in larger volume.
     */
     if (node.samples.length === 0)
-        return undefined;
+        return null;
     
     var tresh = calcNodeTreshold(node);
     var avg = Color(0.0, 0.0, 0.0);
@@ -176,7 +176,7 @@ function genOctreePalette(n, imdata) {
         // Enqueue node children as potential candidates
         for (var i = 0; i < node.children.length; ++i) {
             // but only those who have any samples inside
-            if (node.children[i].average !== undefined) {
+            if (node.children[i].average) {
                 queue.push(node.children[i]);
             }
         }
@@ -194,7 +194,7 @@ function genOctreePalette(n, imdata) {
         console.log(tabs + "[" + node.rMin + "," + node.rMax + ","
                                + node.bMin + "," + node.bMax + ","
                                + node.gMin + "," + node.gMax + "]");
-        if (node.children !== undefined) {
+        if (node.children) {
             for (var i = 0; i < 8; i++) {
                 printNode(node.children[i], level+1);
             }

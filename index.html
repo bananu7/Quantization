@@ -154,8 +154,20 @@
             overflow: hidden;
         }
         #magnCanvas { width: 200px; height: 200px; }
-
-        .optionBlock { min-width: 300px; min-height: 100px; float: left; margin 0px 0px 10px 10px; }
+        
+        div#progressbarWrapper {
+            border: 1px solid black;
+            width: 500px;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        fieldset /*.optionBlock*/ {
+            min-width: 200px;
+            min-height: 100px;
+            float: left;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 
@@ -166,10 +178,9 @@
     <p>The code is available under MIT licence.</p>
     <form>
         <fieldset id="pick-file">
-            <input type="file" id="files" name="files[]" multiple />
+            <input type="file" id="files" name="files[]" multiple><br>
+            <input type="button" onclick="process()" value="Process">
         </fieldset>
-    </form>
-    <form>
         <fieldset id="pick-pallette-builder" class="optionBlock">
             <span>Choose palette building algorithm:</span><br>
             <input type="radio" name="paletteS" value="regular">Regular divisions<br>
@@ -189,14 +200,15 @@
             <input type="checkbox" onchange="toggleMagnifier()">Magnifier<br>
             Zoom<input type="range" min="2" max="12" onchange="setMagnifierZoom(this.value)" value="2"><span id="magnifierZoomDisplay">2x</span>
         </fieldset>
-
-        <input type="button" onclick="process()" value="Process">
     </form>
 
     <br style="clear: both;">
 
     <canvas id="canvas" width="500" height="500" style="width: 500px; height: 500px; border: 1px solid black;"></canvas>
-    <div id="progressbar" style="height: 100px; background-color: green; width: 0;"></div>
+    <canvas id="canvas2" width="500" height="500" style="width: 500px; height: 500px; border: 1px solid black;"></canvas>
+    <div id="progressbarWrapper">
+        <div id="progressbar" style="height: 100px; background-color: green; width: 0;"></div>
+    </div>
     <div id="magnifier">
         <canvas id="magnCanvas" width="200" height="200"></canvas>
     </div>

@@ -5,7 +5,7 @@
     <title>Image quantization project</title>
     <script type="text/javascript" src="dithering/common.js"></script>
     <script type="text/javascript">
-        var img;
+        var images = [];
         var magnifierEnabled = false;
         var magnifierZoom = 2;
 
@@ -13,7 +13,45 @@
             var files = evt.target.files; // FileList object
 
             // files is a FileList of File objects. List some properties.
+            var img = new Image();
             img.src = URL.createObjectURL(files[0]);
+
+            img.addEventListener("load", function () {
+                var ctx = document.getElementById('canvas').getContext('2d');
+                ctx.drawImage(img, 0, 0);
+
+                loadNewImgFromLeftCanvas();
+            }, false);
+        }
+
+        function loadNewImgFromLeftCanvas() {
+            // push the new imdata to our collection
+            var ctx = document.getElementById('canvas').getContext('2d');
+            var imData = ctx.getImageData(0, 0, 500, 500);
+            images.push(imData);
+
+            // Add new option to selects
+            var ls = document.getElementById("leftCanvasSelector");
+            var rs = document.getElementById("rightCanvasSelector");
+            var opt = document.createElement("option");
+            opt.value = images.length - 1;
+            opt.text = "" + (images.length - 1);
+            var opt2 = opt.cloneNode(true);
+
+            ls.appendChild(opt);
+            rs.appendChild(opt2);
+        }
+
+        function loadImgToLeftCanvas(n) {
+            var ctx = document.getElementById('canvas').getContext('2d');
+            //ctx.drawImage(images[n], 0, 0);
+            ctx.putImageData(images[n], 0, 0);
+
+        }
+        function loadImgToRightCanvas(n) {
+            var ctx = document.getElementById('canvas2').getContext('2d');
+            //ctx.drawImage(images[n], 0, 0);
+            ctx.putImageData(images[n], 0, 0);
         }
 
         function getSelectedRadio(radioElemName) {
@@ -56,8 +94,15 @@
                             document.getElementById('progressbar').style.width = (oEvent.data.val * 5) +'px';
                             //console.log("Called back by the worker!\n");
                         } else if (oEvent.data.type == "finished") {
-                            document.getElementById('progressbar').style.width = (502) +'px';
+                            document.getElementById('progressbar').style.width = (502) + 'px';
+
+                            // draw quantized image on canvas
                             ctx.putImageData(oEvent.data.imdata, 0, 0);
+                            // put the newly generated image in our collection
+                            loadNewImgFromLeftCanvas();
+                            // change the selector to the newly generated image
+                            var ls = document.getElementById("leftCanvasSelector");
+                            ls.selectedIndex = ls.options.length - 1;
                         }
                     };
 
@@ -83,14 +128,6 @@
         }
 
         function preloader() {
-            img = new Image();   // Create new img element
-            img.addEventListener("load", function() {
-                //document.getElementById("pick-algorithm").disabled = false;
-                var ctx = document.getElementById('canvas').getContext('2d');
-                ctx.drawImage(img,0,0);
-            }, false);
-
-            img.src = 'pizza.jpg';
             document.getElementById('files').addEventListener('change', handleFileSelect, false);
             document.getElementById('canvas').addEventListener('mouseout', function() {
                 if (magnifierEnabled)
@@ -140,6 +177,21 @@
                 }
                 magnCtx.putImageData(imdata, 0, 0);
             });
+
+            var ls = document.getElementById('leftCanvasSelector');
+            ls.addEventListener('change', function (event) {
+                var selector = event.target;
+                var value = selector.options[selector.selectedIndex].value; 
+                loadImgToLeftCanvas(value);
+            });
+
+            var rs = document.getElementById('rightCanvasSelector');
+            rs.addEventListener('change', function (event) {
+                var selector = event.target;
+                var value = selector.options[selector.selectedIndex].value;
+                loadImgToRightCanvas(value);
+            });
+
         }
     </script>
     <style type="text/css">
@@ -168,6 +220,16 @@
             margin-right: 10px;
             margin-bottom: 10px;
         }
+        div.canvasWrapper {
+            float: left;
+            margin-right: 10px;
+        }
+            div.canvasWrapper select {
+                display: block;
+                clear: both;
+                box-sizing: border-box;
+                width: 100%;
+            }
     </style>
 </head>
 
@@ -204,8 +266,14 @@
 
     <br style="clear: both;">
 
-    <canvas id="canvas" width="500" height="500" style="width: 500px; height: 500px; border: 1px solid black;"></canvas>
-    <canvas id="canvas2" width="500" height="500" style="width: 500px; height: 500px; border: 1px solid black;"></canvas>
+    <div class="canvasWrapper">
+        <select id="leftCanvasSelector"></select>
+        <canvas id="canvas" width="500" height="500" style="width: 500px; height: 500px; border: 1px solid black;"></canvas>
+    </div>
+    <div class="canvasWrapper">
+        <select id="rightCanvasSelector"></select>
+        <canvas id="canvas2" width="500" height="500" style="width: 500px; height: 500px; border: 1px solid black;"></canvas>
+    </div>
     <div id="progressbarWrapper">
         <div id="progressbar" style="height: 100px; background-color: green; width: 0;"></div>
     </div>

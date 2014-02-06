@@ -65,6 +65,34 @@
             return undefined;
         }
 
+        function drawPalette(palette) {
+            var ctx = document.getElementById('canvasPalette').getContext('2d');
+
+            // clear it to white
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, 500, 500);
+            
+            var num = palette.length;
+            var n = Math.ceil(Math.sqrt(num));
+            var sqSz = 500 / n;
+            // n is the dimensionality of display
+
+            for (var i = 0; i < num; ++i) {
+                var cl = palette[i];
+
+                var r = Math.floor(cl.r * 255);
+                var g = Math.floor(cl.g * 255);
+                var b = Math.floor(cl.b * 255);
+
+                ctx.fillStyle = "rgb(" + r + ", " + g + ", " + b + ")";
+
+                var x = i % n;
+                var y = Math.floor(i / n);
+
+                ctx.fillRect(x * sqSz, y * sqSz, (x + 1) * sqSz, (y + 1) * sqSz);
+            }
+        }
+
         function process() {
             var ctx = document.getElementById('canvas').getContext('2d');
             var imdata = ctx.getImageData(0, 0, 500, 500);
@@ -76,10 +104,13 @@
             paletteWorker.onmessage = function (evt) {
                 if (evt.data.type == "progress") {
                     document.getElementById('progressbar').style.width = (evt.data.val * 5) +'px';
-                } else if (evt.data.type == "finished") {
-                    // Actual image quantization
+                } else if (evt.data.type == "finished") {                    
                     var palette = evt.data.palette;
 
+                    // Draw the palette on the palette canvas
+                    drawPalette(palette);
+
+                    // Actual image quantization
                     var algorithm = getSelectedRadio('algorithmS');
                     if (algorithm === undefined) throw "wrong algorithm picked";
 
@@ -194,43 +225,7 @@
 
         }
     </script>
-    <style type="text/css">
-        #magnifier {
-            width: 200px;
-            height: 200px;
-            border-radius:100px;
-            z-index: 100;
-            border: 1px solid white;
-            position: absolute;
-            pointer-events: none;
-            overflow: hidden;
-        }
-        #magnCanvas { width: 200px; height: 200px; }
-        
-        div#progressbarWrapper {
-            border: 1px solid black;
-            width: 500px;
-            border-radius: 20px;
-            overflow: hidden;
-        }
-        fieldset /*.optionBlock*/ {
-            min-width: 200px;
-            min-height: 100px;
-            float: left;
-            margin-right: 10px;
-            margin-bottom: 10px;
-        }
-        div.canvasWrapper {
-            float: left;
-            margin-right: 10px;
-        }
-            div.canvasWrapper select {
-                display: block;
-                clear: both;
-                box-sizing: border-box;
-                width: 100%;
-            }
-    </style>
+    <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 
 <body onLoad="preloader()">
@@ -269,14 +264,17 @@
 
     <div class="canvasWrapper">
         <select id="leftCanvasSelector"></select>
-        <canvas id="canvas" width="500" height="500" style="width: 500px; height: 500px; border: 1px solid black;"></canvas>
+        <canvas id="canvas" width="500" height="500" style="width: 500px; height: 500px;"></canvas>
     </div>
     <div class="canvasWrapper">
         <select id="rightCanvasSelector"></select>
-        <canvas id="canvas2" width="500" height="500" style="width: 500px; height: 500px; border: 1px solid black;"></canvas>
+        <canvas id="canvas2" width="500" height="500" style="width: 500px; height: 500px;"></canvas>
+    </div>
+    <div class="canvasWrapper">
+        <canvas id="canvasPalette"  width="500" height="500"></canvas>
     </div>
     <div id="progressbarWrapper">
-        <div id="progressbar" style="height: 100px; background-color: green; width: 0;"></div>
+        <div id="progressbar"></div>
     </div>
     <div id="magnifier">
         <canvas id="magnCanvas" width="200" height="200"></canvas>

@@ -1,0 +1,46 @@
+﻿canvas {
+    border: 1px solid black;
+}
+
+#magnifier {
+        width: 200px;
+        height: 200px;
+        border-radius:100px;
+        z-index: 100;
+        border: 1px solid white;
+        position: absolute;
+        pointer-events: none;
+        overflow: hidden;
+    }
+    #magnCanvas { width: 200px; height: 200px; }
+
+div#progressbarWrapper {
+    border: 1px solid black;
+    width: 500px;
+    border-radius: 20px;
+    overflow: hidden;
+    clear: both;
+}
+    div#progressbarWrapper div#progressbar {
+        height: 100px;
+        background-color: green;
+        width: 0;
+    }
+
+fieldset /*.optionBlock*/ {
+    min-width: 200px;
+    min-height: 100px;
+    float: left;
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+div.canvasWrapper {
+    float: left;
+    margin-right: 10px;
+}
+    div.canvasWrapper select {
+        display: block;
+        clear: both;
+        box-sizing: border-box;
+        width: 100%;
+    }

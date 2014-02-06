@@ -196,8 +196,8 @@
                     return;
 
                 var magnifier = document.getElementById('magnifier');
-                magnifier.style.left = (event.clientX - 100) + "px";
-                magnifier.style.top = (event.clientY - 100) + "px";
+                magnifier.style.left = (event.pageX - 100) + "px";
+                magnifier.style.top = (event.pageY - 100) + "px";
 
                 var ctx = document.getElementById('canvas').getContext('2d');
                 var origImdata = ctx.getImageData(0, 0, 500, 500);

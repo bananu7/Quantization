@@ -93,6 +93,28 @@
             }
         }
 
+        function drawDiff() {
+            var ctx = document.getElementById('canvasDiff').getContext('2d');
+            var imdata = ctx.getImageData(0, 0, 500, 500);
+
+            var imA = document.getElementById('canvas').getContext('2d').getImageData(0, 0, 500, 500);
+            var imB = document.getElementById('canvas2').getContext('2d').getImageData(0, 0, 500, 500);
+
+            for (var x = 0; x < 500; ++x) {
+                for (var y = 0; y < 500; ++y) {
+                    var cA = getPixelFromImdata(imA, x, y);
+                    var cB = getPixelFromImdata(imB, x, y);
+
+                    var diff = Math.abs(cA.r - cB.r) + Math.abs(cA.g - cB.g) + Math.abs(cA.b - cB.b);
+                    var c = Color(diff, diff, diff);
+
+                    setPixelAtImdata(imdata, x, y, c);
+                }
+            }
+
+            ctx.putImageData(imdata, 0, 0);
+        }
+
         function process() {
             var ctx = document.getElementById('canvas').getContext('2d');
             var imdata = ctx.getImageData(0, 0, 500, 500);
@@ -214,6 +236,7 @@
                 var selector = event.target;
                 var value = selector.options[selector.selectedIndex].value; 
                 loadImgToLeftCanvas(value);
+                drawDiff();
             });
 
             var rs = document.getElementById('rightCanvasSelector');
@@ -221,6 +244,7 @@
                 var selector = event.target;
                 var value = selector.options[selector.selectedIndex].value;
                 loadImgToRightCanvas(value);
+                drawDiff();
             });
 
         }
@@ -273,6 +297,10 @@
     <div class="canvasWrapper">
         <canvas id="canvasPalette"  width="500" height="500"></canvas>
     </div>
+    <div class="canvasWrapper">
+        <canvas id="canvasDiff" width="500" height="500"></canvas>
+    </div>
+
     <div id="progressbarWrapper">
         <div id="progressbar"></div>
     </div>
